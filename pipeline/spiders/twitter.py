@@ -31,9 +31,7 @@ class TwitterSpider(scrapy.Spider):
         tweets = response.tweets
         for tweet in tweets:
             item = self.format_request(to_item(tweet))
-            hash = {}
-            for k in item.keys():
-                hash[k] = str(item[k])
+            hash = {k: str(item[k]) for k in item}
             yield FormRequest(url='http://127.0.0.1:4567/twitter',method='POST', formdata=hash, callback=self.upload_to_internal_api)
         return None
 
@@ -43,6 +41,7 @@ class TwitterSpider(scrapy.Spider):
         return item
 
     def upload_to_internal_api(self, response):
+        # upload monitor
         print(response.status)
         return None
 
