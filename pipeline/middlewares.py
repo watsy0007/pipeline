@@ -112,4 +112,4 @@ class ProxyMiddleware(object):
         #     self.proxies = [ip.strip() for ip in f]
 
     def parse_request(self, request, spider):
-        request.meta['proxy'] = 'http://127.0.0.1:1087'
+        request.meta['proxy'] = 'http://207.246.111.84:8889'

@@ -15,8 +15,8 @@ SPIDER_MODULES = ['pipeline.spiders']
 NEWSPIDER_MODULE = 'pipeline.spiders'
 
 DOWNLOADER_MIDDLEWARES = {
-    'pipeline.middlewares.ProxyMiddleware': 90,
-    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 100,
+    # 'pipeline.middlewares.ProxyMiddleware': 90,
+    # 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 100,
     'scrapy_twitter.TwitterDownloaderMiddleware': 101,
 }
 TWITTER_CONSUMER_KEY        = '7ItrbuzK8X943zg1LUS3F3P44'

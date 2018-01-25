@@ -1,0 +1,11 @@
+.idea
+build
+dbs
+eggs
+logs/*
+project.egg-info
+*.egg
+SpiderKeeper.db
+twistd.pid
+*.pyc
+__pycache__
