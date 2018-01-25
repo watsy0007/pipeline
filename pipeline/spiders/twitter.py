@@ -6,12 +6,11 @@ from scrapy import FormRequest
 from scrapy_twitter import TwitterUserTimelineRequest, to_item
 
 class TwitterSpider(scrapy.Spider):
-    name = "twitter"
+    name = 'twitter'
     allowed_domains = ["twitter.com", '127.0.0.1']
 
     def __init__(self, screen_name = None, *args, **kwargs):
-        if not screen_name:
-            raise scrapy.exceptions.CloseSpider('Argument scren_name not set.')
+        if not screen_name: raise scrapy.exceptions.CloseSpider('Argument scren_name not set.')
         super(TwitterSpider, self).__init__(*args, **kwargs)
         self.count = 100
 
@@ -24,15 +23,14 @@ class TwitterSpider(scrapy.Spider):
                 screen_name=item['screen_name'],
                 count=self.count,
                 callback=self.parse_twitters,
-                meta={'screen_name': item['screen_name']}
-            )
+                meta={'screen_name': item['screen_name']})
 
     def parse_twitters(self, response):
         tweets = response.tweets
         for tweet in tweets:
             item = self.format_request(to_item(tweet))
             hash = {k: str(item[k]) for k in item}
-            yield FormRequest(url='http://127.0.0.1:4567/twitter',method='POST', formdata=hash, callback=self.upload_to_internal_api)
+            yield FormRequest(url='http://127.0.0.1:4567/twitter',method='POST',formdata=hash, callback=self.upload_to_internal_api)
         return None
 
     def format_request(self, data):
@@ -45,18 +43,18 @@ class TwitterSpider(scrapy.Spider):
         print(response.status)
         return None
 
-
     ##############################################################
     # data format
     ##############################################################
 
-
-    def replace_text_content(self, content, urls):
+    @staticmethod
+    def replace_text_content(content, urls):
         for url in urls:
             content = content.replace(url['url'], '<a href="{}" target="_blank">{}</a>'.format(url['expanded_url'], url['url']))
         return content
 
-    def media_struct(self, data):
+    @staticmethod
+    def media_struct(data):
         if 'media' in data.keys():
             return [{
                 'media_type': media['type'],
@@ -73,8 +71,8 @@ class TwitterSpider(scrapy.Spider):
             'author': data['user']['name'],
             'account': data['user']['screen_name'],
             'text': data['text'],
-            'html_text': self.replace_text_content(data['text'], data['urls']),
-            # 'media': self.media_struct(data),
+            'html_text': self.__class__.replace_text_content(data['text'], data['urls']),
+            # 'media': self.__class__.media_struct(data),
             'retweet_author': '',
             'retweet_account': '',
         }
@@ -86,6 +84,6 @@ class TwitterSpider(scrapy.Spider):
             item['retweet_author'] = retweet_item['user']['name']
             item['retweet_account'] = retweet_item['user']['screen_name']
             item['retweet_text'] = retweet_item['text']
-            # item['rwtweet_media'] = self.media_struct(data)
-            item['retweet_html_text'] = self.replace_text_content(retweet_item['text'], retweet_item['urls'])
+            # item['rwtweet_media'] = self.__class__.media_struct(data)
+            item['retweet_html_text'] = self.__class__.replace_text_content(retweet_item['text'], retweet_item['urls'])
         return item
