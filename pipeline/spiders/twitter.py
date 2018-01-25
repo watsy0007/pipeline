@@ -26,11 +26,14 @@ class TwitterSpider(scrapy.Spider):
                 meta={'screen_name': item['screen_name']})
 
     def parse_twitters(self, response):
-        tweets = response.tweets
-        for tweet in tweets:
+        # todo parse monitor
+        for tweet in response.tweets:
             item = self.format_request(to_item(tweet))
-            hash = {k: str(item[k]) for k in item}
-            yield FormRequest(url='http://127.0.0.1:4567/twitter',method='POST',formdata=hash, callback=self.upload_to_internal_api)
+            yield FormRequest(
+                url='http://127.0.0.1:4567/twitter',
+                method='POST',
+                formdata={k: str(item[k]) for k in item},
+                callback=self.upload_to_internal_api)
         return None
 
     def format_request(self, data):
@@ -39,7 +42,7 @@ class TwitterSpider(scrapy.Spider):
         return item
 
     def upload_to_internal_api(self, response):
-        # upload monitor
+        # todo upload monitor
         print(response.status)
         return None
 
