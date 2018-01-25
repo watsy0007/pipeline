@@ -17,8 +17,8 @@ class TwitterSpider(scrapy.Spider):
     start_urls = ['http://127.0.0.1:4567/twitters']
 
     def parse(self, response):
-        data = json.loads(response.body)
-        for item in data:
+        # todo parse monitor
+        for item in json.loads(response.body):
             yield TwitterUserTimelineRequest(
                 screen_name=item['screen_name'],
                 count=self.count,
