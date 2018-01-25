@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import scrapy
-import json
 import arrow
+from pipeline.utils import to_dict
 from scrapy import FormRequest
+from pipe import Pipe
 from scrapy_twitter import TwitterUserTimelineRequest, to_item
 
 class TwitterSpider(scrapy.Spider):
@@ -18,7 +19,7 @@ class TwitterSpider(scrapy.Spider):
 
     def parse(self, response):
         # todo parse monitor
-        for item in json.loads(response.body):
+        for item in (response.body | to_dict):
             yield TwitterUserTimelineRequest(
                 screen_name=item['screen_name'],
                 count=self.count,
