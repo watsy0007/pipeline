@@ -1,93 +1,112 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import arrow
-from pipeline.utils import to_dict
-from scrapy import FormRequest
-from pipe import Pipe
+from scrapy import Request
+import json
+from urllib import parse
+from pipeline.utils import spider_error, api_error, translate_request
+import requests
 from scrapy_twitter import TwitterUserTimelineRequest, to_item
 
 class TwitterSpider(scrapy.Spider):
     name = 'twitter'
-    allowed_domains = ["twitter.com", '127.0.0.1']
+    allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161']
 
-    def __init__(self, screen_name = None, *args, **kwargs):
-        if not screen_name: raise scrapy.exceptions.CloseSpider('Argument scren_name not set.')
+    def __init__(self, *args, **kwargs):
         super(TwitterSpider, self).__init__(*args, **kwargs)
+        self.base_url = 'http://35.176.110.161:12306/social/accountlist'
+        self.commit_url = 'http://35.176.110.161:12306/social/addtimeline'
+        self.common_query = 'page_limit=20&need_pagination=1'
         self.count = 100
 
-    start_urls = ['http://127.0.0.1:4567/twitters']
+    def start_requests(self):
+        url = '{url}?page_num=1&{query}'.format(url=self.base_url,query=self.common_query)
+        return [Request(url, callback=self.parse, errback=self.parse_error)]
+
+    def yield_next_page_request(self, response, data):
+        if len(data['data']['list']) == 0:
+            return None
+
+        query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
+        page = int(query['page_num'])
+        url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
+        return Request(url, callback=self.parse, errback=self.parse_error)
+
+    def parse_error(self, response):
+        api_error({'url': response.request.url})
 
     def parse(self, response):
-        # todo parse monitor
-        for item in (response.body | to_dict):
-            yield TwitterUserTimelineRequest(
-                screen_name=item['screen_name'],
-                count=self.count,
-                callback=self.parse_twitters,
-                meta={'screen_name': item['screen_name']})
+        data = json.loads(response.body)
+        if data['code'] != 0:
+            api_error({'url': response.request.url, 'response': response.body})
+            print('{} error {}'.format(response.request.url, response.body))
+            return
 
-    def parse_twitters(self, response):
+        for item in data['data']['list']:
+            yield TwitterUserTimelineRequest(
+                screen_name=item['account'],
+                count=self.count,
+                since_id=item['last_social_content_id'],
+                callback=self.parse_twitter_time_line,
+                meta={'social_id': item['id']})
+
+        next_page_generator = self.yield_next_page_request(response, data)
+        if next_page_generator is not None:
+            yield next_page_generator
+
+    def parse_twitter_time_line(self, response):
         # todo parse monitor
+        account_id = response.request.meta['social_id']
         for tweet in response.tweets:
             item = self.format_request(to_item(tweet))
-            yield FormRequest(
-                url='http://127.0.0.1:4567/twitter',
-                method='POST',
-                formdata={k: str(item[k]) for k in item},
-                callback=self.upload_to_internal_api)
-        return None
+            if item['retweet_content'] is not None:
+                item['retweet_content'] = json.dumps(item['retweet_content'])
+            item['social_account_id'] = account_id
+            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item})
+            if r.status_code == 200:
+                # todo 判断code是否成功,否则捕获api错误
+                result = r.json()
+                if int(result['code']) != 0:
+                    api_error({'url': response.request.url,
+                               'response': json.dumps(r.json())})
+            else:
+                # todo 捕获异常
+                print('{} - {}'.format(r.status_code, r.content))
 
     def format_request(self, data):
-        item = self.default_twitter_struct(data)
-        item = self.retweet_struct(item, data)
-        return item
+        item = self.default_time_line_struct(data)
+        return self.extend_retweet_struct(item, data)
 
-    def upload_to_internal_api(self, response):
-        # todo upload monitor
-        print(response.status)
-        return None
 
     ##############################################################
     # data format
     ##############################################################
 
-    @staticmethod
-    def replace_text_content(content, urls):
-        for url in urls:
-            content = content.replace(url['url'], '<a href="{}" target="_blank">{}</a>'.format(url['expanded_url'], url['url']))
-        return content
-
-    @staticmethod
-    def media_struct(data):
-        if 'media' in data.keys():
-            return [{
-                'media_type': media['type'],
-                'http_url': media['media_url'],
-                'https_url': media['media_url_https']
-            } for media in data['media']]
-        return []
-
-    def default_twitter_struct(self, data):
+    def default_time_line_struct(self, data):
         return {
-            'msg_type': 'direct',
-            'id': data['id'],
-            'created_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
-            'author': data['user']['name'],
-            'account': data['user']['screen_name'],
-            'text': data['text'],
-            'html_text': self.__class__.replace_text_content(data['text'], data['urls']),
-            # 'media': self.__class__.media_struct(data),
-            'retweet_author': '',
-            'retweet_account': '',
+            'social_content_id': data['id'],
+            'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
+            'content': self.format_tweet_urls(data['text'], data['urls']),
+            'content_translation': self.format_tweet_urls(translate_request(data['text']), data['urls']),
+            'is_reweet': 0,
+            'retweet_content': {}
         }
 
-    def retweet_struct(self, item, data):
-        if 'retweeted_status' in data.keys():
-            item['msg_type'] = 'retweet'
-            retweet_item = data['retweeted_status']
-            item['retweet_author'] = retweet_item['user']['name']
-            item['retweet_account'] = retweet_item['user']['screen_name']
-            item['retweet_text'] = retweet_item['text']
-            # item['rwtweet_media'] = self.__class__.media_struct(data)
-            item['retweet_html_text'] = self.__class__.replace_text_content(retweet_item['text'], retweet_item['urls'])
+    @classmethod
+    def format_tweet_urls(cls, content, urls):
+        f_url = lambda x: '<a href="{}" target="_blank">{}</a>'.format(x['expanded_url'], x['url'])
+        for url in urls:
+            content = content.replace(url['url'], f_url(url))
+        return content
+
+    def extend_retweet_struct(self, item, data):
+        if 'retweeted_status' not in data.keys():
+            return item
+        status = data['retweeted_status']
+        retweet = item['retweet_content']
+        retweet['account'] = status['user']['screen_name']
+        retweet['nickname'] = status['user']['name']
+        retweet['content'] = status['text']
+        retweet['content_translation'] = self.format_tweet_urls(translate_request(status['text']),data['urls'])
+        item['is_reweet'] = 1
         return item
