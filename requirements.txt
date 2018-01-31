@@ -6,3 +6,4 @@ scrapyd-client
 git+https://github.com/watsy0007/scrapy-twitter.git#egg=scrapy_twitter
 spiderkeeper
 pipe
+six==1.10.0
