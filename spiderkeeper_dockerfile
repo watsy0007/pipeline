@@ -19,4 +19,4 @@ RUN apk --no-cache add --virtual build-dependencies $BUILD_PACKAGES && \
 
 ADD . /app
 EXPOSE 5000
-CMD ["./scripts/spider_keeper.sh"]
+CMD ["sh", "/app/scripts/spider_keeper.sh"]
