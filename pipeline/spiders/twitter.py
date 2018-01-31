@@ -87,7 +87,9 @@ class TwitterSpider(scrapy.Spider):
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
             'content': self.format_tweet_urls(data['text'], data['urls']),
-            'content_translation': self.format_tweet_urls(translate_request(data['text']), data['urls']),
+            'i18n_content_translation': {
+                'zh_cn': self.format_tweet_urls(translate_request(data['text']), data['urls'])
+            },
             'is_reweet': 0,
             'retweet_content': {}
         }
@@ -107,6 +109,7 @@ class TwitterSpider(scrapy.Spider):
         retweet['account'] = status['user']['screen_name']
         retweet['nickname'] = status['user']['name']
         retweet['content'] = status['text']
-        retweet['content_translation'] = self.format_tweet_urls(translate_request(status['text']),data['urls'])
+        retweet['content_translation'] = \
+            {'zh_cn': self.format_tweet_urls(translate_request(status['text']),data['urls']) }
         item['is_reweet'] = 1
         return item
