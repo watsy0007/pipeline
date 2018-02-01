@@ -101,15 +101,3 @@ class PipelineDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
-
-
-class ProxyMiddleware(object):
-    """Custom ProxyMiddleware."""
-    # def __init__(self, settings):
-    #     pass
-        # self.proxy_list = settings.get('PROXY_LIST')
-        # with open(self.proxy_list) as f:
-        #     self.proxies = [ip.strip() for ip in f]
-
-    def parse_request(self, request, spider):
-        request.meta['proxy'] = 'http://207.246.111.84:8889'

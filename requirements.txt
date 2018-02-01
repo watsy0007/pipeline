@@ -1,4 +1,4 @@
-scrapy
+scrapy==1.5.0
 pyopenssl
 arrow
 scrapyd
