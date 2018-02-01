@@ -18,5 +18,6 @@ RUN apk --no-cache add --virtual build-dependencies $BUILD_PACKAGES && \
     apk del build-dependencies
 
 ADD scrapyd.conf /app
+
 EXPOSE 6800
 CMD ["scrapyd"]
