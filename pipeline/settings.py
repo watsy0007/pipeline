@@ -32,7 +32,7 @@ ROBOTSTXT_OBEY = True
 
 ERROR_COLLECTION_URL = 'http://35.176.110.161:12321/exchange/addexchangeerror'
 
-LOG_LEVEL='INFO'
+LOG_LEVEL = 'INFO'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -42,7 +42,7 @@ LOG_LEVEL='INFO'
 # See also autothrottle settings and docs
 #DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
-#CONCURRENT_REQUESTS_PER_DOMAIN = 16
+CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
