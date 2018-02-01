@@ -17,6 +17,6 @@ RUN apk --no-cache add --virtual build-dependencies $BUILD_PACKAGES && \
     pip3 --no-cache-dir install -r requirements.txt && \
     apk del build-dependencies
 
-add ./scripts /app
+add scripts /app
 EXPOSE 5000
 CMD ["sh", "/app/scripts/spider_keeper.sh"]
