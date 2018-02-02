@@ -28,7 +28,7 @@ TWITTER_ACCESS_TOKEN_SECRET = '9NE2Db7z0v1q7oKp4l4vcH5XMpgn9o19VW9bXLkVg8ALQ'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-ERROR_COLLECTION_URL = 'http://35.176.110.161:12321/exchange/addexchangeerror'
+ERROR_COLLECTION_URL = 'http://host:40000/api/v1/handle_errors'
 
 LOG_LEVEL = 'DEBUG'
 
