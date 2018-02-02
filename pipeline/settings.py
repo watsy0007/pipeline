@@ -30,7 +30,7 @@ ROBOTSTXT_OBEY = False
 
 ERROR_COLLECTION_URL = 'http://35.176.110.161:12321/exchange/addexchangeerror'
 
-LOG_LEVEL = 'INFO'
+LOG_LEVEL = 'DEBUG'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
