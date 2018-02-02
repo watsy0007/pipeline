@@ -17,11 +17,12 @@ class TwitterSpider(scrapy.Spider):
         self.base_url = 'http://35.176.110.161:12306/social/accountlist'
         self.commit_url = 'http://35.176.110.161:12306/social/addtimeline'
         self.common_query = 'page_limit=20&need_pagination=1'
+        self.headers = {'Connection':'close'}
         self.count = 100
 
     def start_requests(self):
         url = '{url}?page_num=1&{query}'.format(url=self.base_url,query=self.common_query)
-        return [Request(url, callback=self.parse, errback=self.parse_error)]
+        return [Request(url, callback=self.parse, errback=self.parse_error, headers=self.headers)]
 
     def yield_next_page_request(self, response, data):
         if len(data['data']['list']) == 0:
@@ -30,7 +31,7 @@ class TwitterSpider(scrapy.Spider):
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
         page = int(query['page_num'])
         url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
-        return Request(url, callback=self.parse, errback=self.parse_error)
+        return Request(url, callback=self.parse, errback=self.parse_error, headers=self.headers)
 
     def parse_error(self, response):
         api_error({'url': response.request.url})
@@ -44,6 +45,7 @@ class TwitterSpider(scrapy.Spider):
 
         for item in data['data']['list']:
             yield TwitterUserTimelineRequest(
+                headers=self.headers,
                 screen_name=item['account'],
                 count=self.count,
                 since_id=item['last_social_content_id'],
@@ -63,7 +65,7 @@ class TwitterSpider(scrapy.Spider):
                 item['retweet_content'] = json.dumps(item['retweet_content'])
             item['social_account_id'] = account_id
             # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
-            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, headers={'Connection':'close'})
+            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, headers=self.headers)
             if r.status_code == 200:
                 # todo 判断code是否成功,否则捕获api错误
                 result = r.json()
