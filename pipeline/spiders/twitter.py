@@ -63,7 +63,7 @@ class TwitterSpider(scrapy.Spider):
                 item['retweet_content'] = json.dumps(item['retweet_content'])
             item['social_account_id'] = account_id
             # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
-            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item})
+            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, headers={'Connection':'close'})
             if r.status_code == 200:
                 # todo 判断code是否成功,否则捕获api错误
                 result = r.json()

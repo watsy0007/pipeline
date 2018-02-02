@@ -20,7 +20,7 @@ from scrapy.utils.project import get_project_settings
 #               error_message: ''  }
 def error_handler(monitor_type, kwargs):
     kwargs['monitor_type'] = monitor_type
-    requests.post(get_project_settings().get('ERROR_COLLECTION_URL'), data=kwargs)
+    requests.post(get_project_settings().get('ERROR_COLLECTION_URL'), data=kwargs, headers={'Connection':'close'})
 
 
 def spider_error(kwargs):
