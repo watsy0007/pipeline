@@ -30,7 +30,7 @@ ROBOTSTXT_OBEY = False
 
 ERROR_COLLECTION_URL = 'http://host:40000/api/v1/handle_errors'
 
-LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = 'INFO'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
