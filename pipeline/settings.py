@@ -26,7 +26,7 @@ TWITTER_ACCESS_TOKEN_SECRET = '9NE2Db7z0v1q7oKp4l4vcH5XMpgn9o19VW9bXLkVg8ALQ'
 #USER_AGENT = 'pipeline (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 ERROR_COLLECTION_URL = 'http://35.176.110.161:12321/exchange/addexchangeerror'
 
