@@ -20,11 +20,8 @@ import os
 #               error_message: ''  }
 def error_handler(monitor_type, kwargs):
     kwargs['monitor_type'] = monitor_type
-    url = os.getenv('HANDLE_ERROR_URL', None)
-    if url is None:
-        print('data: {}'.format(kwargs))
-    else:
-        requests.post(get_project_settings().get('ERROR_COLLECTION_URL'), data=kwargs, headers={'Connection':'close'})
+    print('data: {}'.format(kwargs))
+    requests.post(get_project_settings().get('ERROR_COLLECTION_URL'), data=kwargs, headers={'Connection':'close'})
 
 
 def spider_error(kwargs):
