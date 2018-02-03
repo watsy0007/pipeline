@@ -98,7 +98,7 @@ class TwitterSpider(scrapy.Spider):
                                'response': json.dumps(r.json())})
             else:
                 # todo 捕获异常
-                print('{} - {}'.format(r.status_code, r.content))
+                self.logger.error('{} - {}'.format(r.status_code, r.content))
 
     ##############################################################
     # data format
