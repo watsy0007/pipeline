@@ -7,6 +7,9 @@ from urllib import parse
 from pipeline.utils import spider_error, api_error, translate_request
 import requests
 from scrapy_twitter import TwitterUserTimelineRequest, to_item
+from scrapy.spidermiddlewares.httperror import HttpError
+from twisted.internet.error import DNSLookupError
+from twisted.internet.error import TimeoutError, TCPTimedOutError
 
 class TwitterSpider(scrapy.Spider):
     name = 'twitter'
@@ -40,24 +43,46 @@ class TwitterSpider(scrapy.Spider):
         data = json.loads(response.body)
         if data['code'] != 0:
             api_error({'url': response.request.url, 'response': response.body})
-            print('{} error {}'.format(response.request.url, response.body))
+            self.logger.error('{} error {}'.format(response.request.url, response.body))
             return
-
         for item in data['data']['list']:
             yield TwitterUserTimelineRequest(
                 screen_name=item['account'],
                 count=self.count,
                 since_id=item['last_social_content_id'],
                 callback=self.parse_twitter_time_line,
-                meta={'social_id': item['id']})
+                meta={'social_id': item['id'], 'screen_name': item['account']})
 
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:
             yield next_page_generator
 
+    def parse_twitter_error(self, failure):
+        # log all failures
+        self.logger.error(repr(failure))
+
+        # in case you want to do something special for some errors,
+        # you may need the failure's type:
+
+        if failure.check(HttpError):
+            # these exceptions come from HttpError spider middleware
+            # you can get the non-200 response
+            response = failure.value.response
+            self.logger.error('HttpError on %s', response.url)
+
+        elif failure.check(DNSLookupError):
+            # this is the original request
+            request = failure.request
+            self.logger.error('DNSLookupError on %s', request.url)
+
+        elif failure.check(TimeoutError, TCPTimedOutError):
+            request = failure.request
+            self.logger.error('TimeoutError on %s', request.url)
+
     def parse_twitter_time_line(self, response):
         # todo parse monitor
         account_id = response.request.meta['social_id']
+        self.logger.info('twitter: {}, count: {}'.format(response.request.meta['screen_name'], len(response.tweets)))
         for tweet in response.tweets:
             item = self.format_request(to_item(tweet))
             if item['retweet_content'] is not None:
