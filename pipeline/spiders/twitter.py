@@ -16,9 +16,9 @@ class TwitterSpider(scrapy.Spider):
         super(TwitterSpider, self).__init__(*args, **kwargs)
         self.base_url = 'http://35.176.110.161:12306/social/accountlist'
         self.commit_url = 'http://35.176.110.161:12306/social/addtimeline'
-        self.common_query = 'page_limit=20&need_pagination=1'
+        self.common_query = 'page_limit=40&need_pagination=1'
         # self.headers = {'Connection': 'close'}
-        self.count = 100
+        self.count = 50
 
     def start_requests(self):
         url = '{url}?page_num=1&{query}'.format(url=self.base_url,query=self.common_query)
@@ -64,7 +64,7 @@ class TwitterSpider(scrapy.Spider):
                 item['retweet_content'] = json.dumps(item['retweet_content'])
             item['social_account_id'] = account_id
             # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
-            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=8)
+            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
             if r.status_code == 200:
                 # todo 判断code是否成功,否则捕获api错误
                 result = r.json()
@@ -75,14 +75,13 @@ class TwitterSpider(scrapy.Spider):
                 # todo 捕获异常
                 print('{} - {}'.format(r.status_code, r.content))
 
-    def format_request(self, data):
-        item = self.default_time_line_struct(data)
-        return self.extend_retweet_struct(item, data)
-
-
     ##############################################################
     # data format
     ##############################################################
+
+    def format_request(self, data):
+        item = self.default_time_line_struct(data)
+        return self.extend_retweet_struct(item, data)
 
     def default_time_line_struct(self, data):
         return {

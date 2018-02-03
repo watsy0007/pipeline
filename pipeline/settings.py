@@ -55,9 +55,9 @@ LOG_LEVEL = 'INFO'
 #   'Accept-Language': 'en',
 #}
 
-DEFAULT_REQUEST_HEADERS = {
-    'Connection': 'close'
-}
+# DEFAULT_REQUEST_HEADERS = {
+#     'Connection': 'close'
+# }
 
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
