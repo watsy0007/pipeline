@@ -19,7 +19,7 @@ import os
 #               line: '',
 #               error_message: ''  }
 def error_handler(monitor_type, kwargs):
-    kwargs['monitor_type'] = monitor_type
+    kwargs['error_type'] = monitor_type
     print('data: {}'.format(kwargs))
     requests.post(get_project_settings().get('ERROR_COLLECTION_URL'), data=kwargs, headers={'Connection':'close'})
 
