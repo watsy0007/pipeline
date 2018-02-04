@@ -80,7 +80,6 @@ class TwitterSpider(scrapy.Spider):
             self.logger.error('TimeoutError on %s', request.url)
 
     def parse_twitter_time_line(self, response):
-        # todo parse monitor
         account_id = response.request.meta['social_id']
         self.logger.info('twitter: {}, count: {}'.format(response.request.meta['screen_name'], len(response.tweets)))
         for tweet in response.tweets:

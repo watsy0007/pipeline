@@ -21,7 +21,7 @@ import os
 def error_handler(monitor_type, kwargs):
     kwargs['error_type'] = monitor_type
     print('data: {}'.format(kwargs))
-    requests.post(get_project_settings().get('ERROR_COLLECTION_URL'), data=kwargs, headers={'Connection':'close'})
+    requests.post(get_project_settings().get('ERROR_COLLECTION_URL'), data=kwargs)
 
 
 def spider_error(kwargs):
@@ -50,7 +50,7 @@ def parse_error_decorator(func):
                  'file_name': traceback.extract_tb(exc_traceback)[1].filename,
                  'line': traceback.extract_tb(exc_traceback)[1].lineno,
                  'vars': json.dumps({'args': args[1:], 'kwargs': kw}),
-                 'error_message': exc_value.args[0]
+                 'error_message': str(exc_value.args[0])
                  }
             )
             raise
@@ -77,5 +77,5 @@ def translate_request(content, target_lang='zh-CHS'):
         if r.json()['errorCode'] == '0':
             return r.json()['translation'][0]
         else:
-            translate_twitter_error({'url': url})
+            translate_twitter_error({'url': url, 'request': json.dumps(params), 'response': json.dumps(r.json())})
     return content
