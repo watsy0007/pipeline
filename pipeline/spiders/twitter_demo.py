@@ -11,8 +11,8 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 
-class TwitterSpider(scrapy.Spider):
-    name = 'twitter'
+class TwitterDemoSpider(scrapy.Spider):
+    name = 'twitter_demo'
     allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161']
 
     def __init__(self, *args, **kwargs):
