@@ -52,7 +52,9 @@ class TwitterSpider(scrapy.Spider):
                 since_id=item['last_social_content_id'],
                 callback=self.parse_twitter_time_line,
                 errback=self.parse_twitter_error,
-                meta={'social_id': item['id'], 'screen_name': item['account']})
+                meta={'social_id': item['id'],
+                      'last_content_id': item['last_social_content_id'],
+                      'screen_name': item['account']})
 
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:
@@ -60,10 +62,7 @@ class TwitterSpider(scrapy.Spider):
 
     def parse_twitter_error(self, failure):
         # log all failures
-        self.logger.error(repr(failure))
-
-        # in case you want to do something special for some errors,
-        # you may need the failure's type:
+        self.logger.error('parse twitter error {}'.format(repr(failure)))
 
         if failure.check(HttpError):
             # these exceptions come from HttpError spider middleware
@@ -82,7 +81,9 @@ class TwitterSpider(scrapy.Spider):
 
     def parse_twitter_time_line(self, response):
         account_id = response.request.meta['social_id']
-        self.logger.info('twitter: {}, count: {}'.format(response.request.meta['screen_name'], len(response.tweets)))
+        last_content_id = response.request.meta['last_content_id']
+        account = response.request.meta['screen_name']
+        self.logger.info('twitter: {}, last_id: {}, count: {}'.format(account, last_content_id, len(response.tweets)))
         for tweet in response.tweets:
             item = self.format_request(to_item(tweet))
             if item['retweet_content'] is not None:
