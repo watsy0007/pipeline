@@ -95,13 +95,13 @@ class TwitterDemoSpider(scrapy.Spider):
         return self.extend_retweet_struct(item, data)
 
     def default_time_line_struct(self, data):
-        transaction = {'zh_cn': self.format_tweet_urls(get_translation(data['text']), data['urls'])}
+        transaction = self.format_tweet_urls(get_translation(data['text']), data['urls'])
         return {
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
             'content': self.format_tweet_urls(data['text'], data['urls']),
-            'content_translation': json.dumps(transaction),
-            'i18n_content_translation': json.dumps(transaction),
+            'content_translation': transaction,
+            'i18n_content_translation': json.dumps({'zh_cn': transaction}),
             'is_reweet': 0,
             'retweet_content': {}
         }

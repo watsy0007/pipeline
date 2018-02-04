@@ -59,31 +59,14 @@ def parse_error_decorator(func):
     return wrapper
 
 
-def translate_data():
-    return {
-        "type": "service_account",
-        "project_id": "mytoken-trans",
-        "private_key_id": "323783fd954a286d4f2279311291e5d670738e05",
-        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCC3cxpyU/R92pC\nIFe6T/HSbJXNfiPT7PFtDU/wVngQhcI0GBlwAvZkI/fVioxplnseqEtzWLI9uD4F\n8G5cfwE3ZqERwLGpfrb+GZ7vs34EBHgQpy/FI/u0AsZkwUneLDS30K3UAGjaNdcw\ngPttw6oKQjC9MhuZrxSZwXS1aFJp+1mDep404lG/fOOUlxttgTN3m8QgjDYCqL70\n3Ljfo+05flnk5Ce7RGuItJzUnZsd2V/jYmYoj7vqD7nUHnJajLls8yh+hpcEj8hh\nXrqqeDACKmnmaorK3of5g/JpakXy3od5AwS/dBoav1OWUQV/E73h9Ua0rdqjrkWF\nUXLpDnrvAgMBAAECggEAATmdT8I0LpV/16Wg3Jwh+ePNVTKgmDvIGMq+nFPa5OCz\nrDQrjMpiTxatG8EjxltDxMozhp1mccB3SCvzhIcl1kRuLpHct+b5RJCt1bWa8OOv\n0gwWnORU118NR2Ut0VgdmDjqX6kvUhed75TNhb4GqfjrpuHAs2QZr8TJWGdlGhve\nUd4hgnqVyyC4lH6TZV/48TDL0eWAWqf+OqEBdpoNccAlxDcMOQGFIe8vJgp9D5yQ\n5KXtEmbcCthxwPF6AeGByfljEisXfGVLivXKiDWGXPYweE0cBx/NrS1Jtn+PAHof\ntPR4Krc5PbPV4UJfL0YEvK6CyjikKWVA0TbyGaFdKQKBgQC3TK9mdQUff+WNVLZH\nfmPi5hfmT+/drlWJHbgIypYzd6B9weUCaXSCgXqNeOmJtE1+lf2oLdJVzsrqHzBA\ns0iKsIRPZ8vYkeuo4Lpbuy2108fmlriH1q7ADgnD2U45eoaE4p49GVeSrw9FLzjQ\n4f6smK+eF3nJap1HeCSYJ3pIaQKBgQC2xVCW19FmHFM73wE2bqXXR/mI0YUU340N\nGtpfth3FhfLs4prRAc1ZS4c4yI5DBs6kf8A+J9Wf0F95y14LiCxTrEtcTLL1vg0Y\nF/l/sOJWF58L+UkjMgOh9KwXs6xtQ4Fz2HVrj9UxSJq9nrI0WCWLrHsVAmwIBwdO\nZBFkN679lwKBgCgkEwVM+yI6z/pzYrelZhp6aSF2wAC7/N9aMsM6GkqLGApyO8Sb\nc3hhAoWYxQvzAEWIc1QxNK616pn62oZQvMIihdcd0/ZJfmItVKJiC1CWYGCPATo+\nOWa1rE3HeOn9exf+yMh4lET7MUzlWnvkAfGqPktQuMrzHh5YoSrw+kaBAoGAHTUQ\n+NoKS4ARSQsNHY63D90fol6hHsHOv55f8VWgElWiiXp49ReNokxwkoFyQoHO+fi0\nVvp0p/Jbn5IBOGSNeN2auWhEXQL/Aq+qHl68/LcPopE2v9oZPINmEO+UiW11PXcE\n5Kh6kEKi/9Rhc/32Ggj5LlVRwEKnRz60jMhdPYcCgYBn1oEiAl+PwSjrU5NUMb2L\nQ4MN1ev1evPv81u7cfrAd/QJU5b9Ox2Wp3inShTWPq1ODUKGQzYfMZObyQaJnHsX\nNzN16tjTHTLUa6Mi4DSO7TPeyqESAVRoMA1PjDiIBQK+Hn6XIEwlKfn524YUiota\nDipbveY6fZnzHx5vTiu8rg==\n-----END PRIVATE KEY-----\n",
-        "client_email": "mytoken@mytoken-trans.iam.gserviceaccount.com",
-        "client_id": "112691825315781514545",
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://accounts.google.com/o/oauth2/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mytoken%40mytoken-trans.iam.gserviceaccount.com"
-    }
-
-
 def get_google_trans_path():
-    json_path = os.path.abspath(os.path.abspath(os.path.dirname(__file__)) + '/../mytoken-trans.json')
-    if not os.path.exists(json_path):
-        with open(json_path, 'a') as file:
-            file.write(json.dumps(translate_data()))
-    return json_path
+    # volume 映射
+    return '/app/configs/mytoken-trans.json'
 
 
 @parse_error_decorator
 def get_translation(text):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = get_google_trans_path()
     trans_client = translate.Client(target_language='zh-CN')
     return trans_client.translate(text)['translatedText']
 
@@ -118,9 +101,6 @@ def translate_request(text, target_lang='zh-CHS'):
             print(r.json())
             # translate_twitter_error({'url': url, 'request': json.dumps(params), 'response': json.dumps(r.json())})
     return text
-
-
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = get_google_trans_path()
 
 
 if __name__ == '__main__':
