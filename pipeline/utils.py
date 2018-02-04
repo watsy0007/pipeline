@@ -5,6 +5,8 @@ import json
 import hashlib
 from urllib import parse
 from scrapy.utils.project import get_project_settings
+from google.cloud import translate
+
 import os
 
 # error_handler
@@ -58,24 +60,42 @@ def parse_error_decorator(func):
 
 
 @parse_error_decorator
-def translate_request(content, target_lang='zh-CHS'):
+def get_translation(text):
+    trans_client = translate.Client(target_language='zh-CN')
+    return trans_client.translate(text)['translatedText']
+
+
+@parse_error_decorator
+def translate_request(text, target_lang='zh-CHS'):
+    app_key = '5479f92f6b8976fd'
+    app_secret = 'TK4X01ekWwWLZaUhOl0mbhKHT6EMDPqJ'
+    salt = 'mytk'
+    support_lang = ('zh-CHS', 'ja', 'EN', 'ko', 'fr', 'ru', 'pt', 'es')
+    if target_lang not in support_lang:
+        return None
+
     host = "https://openapi.youdao.com/api"
-    appk, apps, salt = ('5479f92f6b8976fd', 'TK4X01ekWwWLZaUhOl0mbhKHT6EMDPqJ', 'mytk')
     params = {
         'from': 'auto',
         'to': target_lang,
-        'q': content,
-        'appKey': appk,
+        'q': text,
+        'appKey': app_key,
         'salt': salt,
-        'sign': hashlib.md5('{}{}{}{}'.format(appk, content, salt, apps).encode(encoding='utf-8')).hexdigest()
+        'sign': hashlib.md5('{}{}{}{}'
+                            .format(app_key, text, salt, app_secret)
+                            .encode(encoding='utf-8')).hexdigest()
     }
 
     url = '{host}?{param}'.format(host=host, param=parse.urlencode(params))
-    r = requests.get(url, timeout=10)
-    # todo 捕获异常
+    r = requests.get(url, timeout=12)
     if r.status_code == 200:
         if r.json()['errorCode'] == '0':
             return r.json()['translation'][0]
         else:
-            translate_twitter_error({'url': url, 'request': json.dumps(params), 'response': json.dumps(r.json())})
-    return content
+            print(r.json())
+            # translate_twitter_error({'url': url, 'request': json.dumps(params), 'response': json.dumps(r.json())})
+    return text
+
+
+if __name__ == '__main__':
+    print(translate_request("Meet us tomorrow at @chatbotsummit TLV, where we'll talk about how Bancor uses #chatbots to let anyone set up a\u2026 <a href=\"https://twitter.com/i/web/status/958365458687807488\" target=\"_blank\">https://t.co/4jLMgYq9z9</a>"))
