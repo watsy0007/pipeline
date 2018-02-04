@@ -51,6 +51,7 @@ class TwitterSpider(scrapy.Spider):
                 count=self.count,
                 since_id=item['last_social_content_id'],
                 callback=self.parse_twitter_time_line,
+                errback=self.parse_twitter_error,
                 meta={'social_id': item['id'], 'screen_name': item['account']})
 
         next_page_generator = self.yield_next_page_request(response, data)
@@ -94,7 +95,8 @@ class TwitterSpider(scrapy.Spider):
                 result = r.json()
                 if int(result['code']) != 0:
                     api_error({'url': response.request.url,
-                               'response': json.dumps(r.json())})
+                               'response': json.dumps(r.json()),
+                               'vars': json.dumps({k: str(item[k]) for k in item})})
             else:
                 # todo 捕获异常
                 self.logger.error('{} - {}'.format(r.status_code, r.content))
