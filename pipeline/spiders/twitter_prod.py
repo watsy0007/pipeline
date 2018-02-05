@@ -54,7 +54,8 @@ class TwitterProdSpider(scrapy.Spider):
                 errback=self.parse_twitter_error,
                 meta={'social_id': item['id'],
                       'last_content_id': item['last_social_content_id'],
-                      'screen_name': item['account']})
+                      'screen_name': item['account'],
+                      'need_review': item['need_review']})
 
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:
@@ -81,6 +82,7 @@ class TwitterProdSpider(scrapy.Spider):
 
     def parse_twitter_time_line(self, response):
         account_id = response.request.meta['social_id']
+        need_review = response.request.meta['need_review']
         # last_content_id = response.request.meta['last_content_id']
         # account = response.request.meta['screen_name']
         # self.logger.info('twitter: {}, last_id: {}, count: {}'.format(account, last_content_id, len(response.tweets)))
@@ -89,6 +91,10 @@ class TwitterProdSpider(scrapy.Spider):
             if item['retweet_content'] is not None:
                 item['retweet_content'] = json.dumps(item['retweet_content'])
             item['social_account_id'] = account_id
+            if need_review:
+                item['review_status'] = 0
+            else:
+                item['review_status'] = 1
             # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
             r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
             if r.status_code == 200:

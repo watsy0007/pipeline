@@ -13,12 +13,12 @@ from twisted.internet.error import TimeoutError, TCPTimedOutError
 
 class TwitterDemoSpider(scrapy.Spider):
     name = 'twitter_demo'
-    allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161']
+    allowed_domains = ["twitter.com", '127.0.0.1', '52.56.166.200']
 
     def __init__(self, *args, **kwargs):
         super(TwitterDemoSpider, self).__init__(*args, **kwargs)
-        self.base_url = 'http://35.176.110.161:12306/social/accountlist'
-        self.commit_url = 'http://35.176.110.161:12306/social/addtimeline'
+        self.base_url = 'http://52.56.166.200:12306/social/accountlist'
+        self.commit_url = 'http://52.56.166.200:12306/social/addtimeline'
         self.common_query = 'page_limit=40&need_pagination=1'
         # self.headers = {'Connection': 'close'}
         self.count = 50
@@ -34,14 +34,15 @@ class TwitterDemoSpider(scrapy.Spider):
         data = json.loads(response.body)
 
         yield TwitterUserTimelineRequest(
-            screen_name='Bancor',
+            screen_name='EOS_io',
             count=self.count,
-            since_id=0,
+            since_id=958972424132816896,
             callback=self.parse_twitter_time_line,
             errback=self.parse_twitter_error,
-            meta={'social_id': 33,
-                  'last_content_id': 0,
-                  'screen_name': 'Bancor'})
+            meta={'social_id': 26,
+                  'last_content_id': 958972424132816896,
+                  'screen_name': 'EOS_io',
+                  'need_review': 0})
 
     def parse_twitter_error(self, failure):
         # log all failures
@@ -65,6 +66,7 @@ class TwitterDemoSpider(scrapy.Spider):
     def parse_twitter_time_line(self, response):
         account_id = response.request.meta['social_id']
         last_content_id = response.request.meta['last_content_id']
+        need_review = response.request.meta['need_review']
         account = response.request.meta['screen_name']
         self.logger.info('twitter: {}, last_id: {}, count: {}'.format(account, last_content_id, len(response.tweets)))
         for tweet in response.tweets:
@@ -72,6 +74,10 @@ class TwitterDemoSpider(scrapy.Spider):
             if item['retweet_content'] is not None:
                 item['retweet_content'] = json.dumps(item['retweet_content'])
             item['social_account_id'] = account_id
+            if need_review:
+                item['review_status'] = 0
+            else:
+                item['review_status'] = 1
             self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
             r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
             if r.status_code == 200:
