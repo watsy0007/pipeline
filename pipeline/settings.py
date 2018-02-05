@@ -29,6 +29,7 @@ TWITTER_ACCESS_TOKEN_SECRET = '9NE2Db7z0v1q7oKp4l4vcH5XMpgn9o19VW9bXLkVg8ALQ'
 ROBOTSTXT_OBEY = False
 
 ERROR_COLLECTION_URL = 'http://host:4000/api/v1/handle_errors'
+GECKOSES_URL = 'http://host:4000/api/v1/geckoses'
 
 LOG_LEVEL = 'INFO'
 
@@ -79,9 +80,9 @@ CONCURRENT_REQUESTS = 24
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'pipeline.pipelines.PipelinePipeline': 300,
-#}
+ITEM_PIPELINES = {
+   'pipeline.pipelines.IcoPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

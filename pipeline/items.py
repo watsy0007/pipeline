@@ -15,10 +15,10 @@ class PipelineItem(Item):
 
 
 class IcoItem(Item):
-    coin_name = Field()
-    coin_symbol = Field()
-    coin_img_url = Field()
-    coin_other = Field()
+    name = Field()
+    symbol = Field()
+    img_url = Field()
+    other = Field()
     developer = Field()
     community = Field()
     public_interest = Field()
@@ -26,21 +26,21 @@ class IcoItem(Item):
 
     # overview
     liquidity = Field()
-    hashing_algorithm = Field()
-    hashrate = Field()
+    hash_algorithm = Field()
+    hash_rate = Field()
     block_time = Field()
     homepage = Field()
-    blockchain_supply = Field()
+    block_chain_supply = Field()
     discussion_forum = Field()
     available_total_supply = Field()
 
     # community
-    ubscribers = Field()
+    subscribers = Field()
     followers = Field()
     likes = Field()
-    average_users_online = Field()
-    average_new_hot_posts_per_hour = Field()
-    average_new_comments_on_hot_posts_per_hour = Field()
+    avg_users_online = Field()
+    avg_new_hot_posts_per_hour = Field()
+    avg_new_comments_on_hot_posts_per_hour = Field()
 
     #developer
     stars = Field()

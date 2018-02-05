@@ -4,7 +4,8 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-
+import requests
+from scrapy.utils.project import get_project_settings
 
 repr_str = ['\r', '\n', '\t']
 def item_etls(string=None):
@@ -25,5 +26,6 @@ class IcoPipeline(object):
 
         # todo save data
         # interface_url = ""
-        # requests.post(url=interface_url, data=dict(item))
+        r = requests.post(url=get_project_settings().get('GECKOSES_URL'), data=dict(item))
+        # print('status {}'.format(r.status_code))
         return item
