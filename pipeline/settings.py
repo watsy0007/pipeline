@@ -30,6 +30,7 @@ ROBOTSTXT_OBEY = False
 
 ERROR_COLLECTION_URL = 'http://host:4000/api/v1/handle_errors'
 GECKOSES_URL = 'http://host:4000/api/v1/geckoses'
+CMC_URL = 'http://localhost:4000/api/v1/cmc'
 
 LOG_LEVEL = 'INFO'
 
@@ -81,7 +82,8 @@ CONCURRENT_REQUESTS = 24
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'pipeline.pipelines.IcoPipeline': 300,
+    'pipeline.pipelines.IcoPipeline': 300,
+    'pipeline.pipelines.CmcPipeline': 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

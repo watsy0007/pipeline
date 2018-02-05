@@ -6,6 +6,8 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import requests
 from scrapy.utils.project import get_project_settings
+from pipeline.spiders.coingeckospider import CoingeckoSpider
+from pipeline.spiders.coinmarketcap import CoinmarketcapSpider
 
 repr_str = ['\r', '\n', '\t']
 def item_etls(string=None):
@@ -15,17 +17,29 @@ def item_etls(string=None):
         string.replace(x, "")
     return string.strip()
 
+
 class PipelinePipeline(object):
+
     def process_item(self, item, spider):
         return item
 
-class IcoPipeline(object):
-    def process_item(self, item, spider):
-        for k in item.keys():
-            item[k] = item_etls(item[k])
 
-        # todo save data
-        # interface_url = ""
-        r = requests.post(url=get_project_settings().get('GECKOSES_URL'), data=dict(item))
-        # print('status {}'.format(r.status_code))
+class IcoPipeline(object):
+
+    def process_item(self, item, spider):
+        # print(spider)
+        if type(spider) == CoingeckoSpider:
+            for k in item.keys():
+                item[k] = item_etls(item[k])
+            r = requests.post(url=get_project_settings().get('GECKOSES_URL'), data=dict(item))
+            # print('status {}'.format(r.status_code))
+        return item
+
+
+class CmcPipeline(object):
+
+    def process_item(self, item, spider):
+        if type(spider) == CoinmarketcapSpider:
+            requests.post(url=get_project_settings().get('CMC_URL'), data=dict(item))
+            print("data {}".format(item))
         return item

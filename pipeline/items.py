@@ -14,6 +14,14 @@ class PipelineItem(Item):
     pass
 
 
+class CMCItem(Item):
+    cmc_id = Field()
+    name = Field()
+    symbol = Field()
+    max_supply = Field()
+    total_supply = Field()
+
+
 class IcoItem(Item):
     name = Field()
     symbol = Field()
