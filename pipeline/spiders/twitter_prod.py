@@ -13,7 +13,7 @@ from twisted.internet.error import TimeoutError, TCPTimedOutError
 
 class TwitterProdSpider(scrapy.Spider):
     name = 'twitter_prod'
-    allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161']
+    allowed_domains = ["twitter.com", '127.0.0.1', '52.56.166.200']
 
     def __init__(self, *args, **kwargs):
         super(TwitterProdSpider, self).__init__(*args, **kwargs)
