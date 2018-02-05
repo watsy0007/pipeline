@@ -83,9 +83,9 @@ class TwitterProdSpider(scrapy.Spider):
     def parse_twitter_time_line(self, response):
         account_id = response.request.meta['social_id']
         need_review = response.request.meta['need_review']
-        # last_content_id = response.request.meta['last_content_id']
-        # account = response.request.meta['screen_name']
-        # self.logger.info('twitter: {}, last_id: {}, count: {}'.format(account, last_content_id, len(response.tweets)))
+        last_content_id = response.request.meta['last_content_id']
+        account = response.request.meta['screen_name']
+        self.logger.info('twitter: {}, last_id: {}, count: {}'.format(account, last_content_id, len(response.tweets)))
         for tweet in response.tweets:
             item = self.format_request(to_item(tweet))
             if item['retweet_content'] is not None:

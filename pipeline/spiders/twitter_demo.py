@@ -71,6 +71,7 @@ class TwitterDemoSpider(scrapy.Spider):
         self.logger.info('twitter: {}, last_id: {}, count: {}'.format(account, last_content_id, len(response.tweets)))
         for tweet in response.tweets:
             item = self.format_request(to_item(tweet))
+            self.logger.info('twitter {}'.format(to_item(tweet)))
             if item['retweet_content'] is not None:
                 item['retweet_content'] = json.dumps(item['retweet_content'])
             item['social_account_id'] = account_id
