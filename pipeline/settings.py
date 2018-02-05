@@ -30,7 +30,7 @@ ROBOTSTXT_OBEY = False
 
 ERROR_COLLECTION_URL = 'http://host:4000/api/v1/handle_errors'
 GECKOSES_URL = 'http://host:4000/api/v1/geckoses'
-CMC_URL = 'http://localhost:4000/api/v1/cmc'
+CMC_URL = 'http://host:4000/api/v1/cmc'
 
 LOG_LEVEL = 'INFO'
 

@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name         = 'project',
-    version      = '1.23',
+    version      = '1.24',
     packages     = find_packages(),
     include_package_data = True,
     entry_points = {'scrapy': ['settings = pipeline.settings']},
