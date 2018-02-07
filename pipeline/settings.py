@@ -31,7 +31,7 @@ ROBOTSTXT_OBEY = False
 ERROR_COLLECTION_URL = 'http://host:4000/api/v1/handle_errors'
 GECKOSES_URL = 'http://host:4000/api/v1/geckoses'
 CMC_URL = 'http://host:4000/api/v1/cmc'
-
+CMC_HISTORY_URL = 'http://35.176.110.161:12306/currencyratehistory/create'
 LOG_LEVEL = 'INFO'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
@@ -84,6 +84,7 @@ CONCURRENT_REQUESTS = 24
 ITEM_PIPELINES = {
     'pipeline.pipelines.IcoPipeline': 300,
     'pipeline.pipelines.CmcPipeline': 400,
+    'pipeline.pipelines.CMCHistoryPricePipeline': 401,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

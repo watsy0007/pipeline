@@ -22,6 +22,13 @@ class CMCItem(Item):
     total_supply = Field()
 
 
+class CMCHistoryPriceItem(Item):
+    symbol = Field()
+    date = Field()
+    rate = Field()
+    anchor = Field()
+
+
 class IcoItem(Item):
     name = Field()
     symbol = Field()
