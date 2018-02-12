@@ -13,12 +13,12 @@ from twisted.internet.error import TimeoutError, TCPTimedOutError
 
 class TwitterProdSpider(scrapy.Spider):
     name = 'twitter_prod'
-    allowed_domains = ["twitter.com", '127.0.0.1', '52.56.166.200']
+    allowed_domains = ["twitter.com", '127.0.0.1', 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com']
 
     def __init__(self, *args, **kwargs):
         super(TwitterProdSpider, self).__init__(*args, **kwargs)
-        self.base_url = 'http://52.56.166.200:12306/social/accountlist'
-        self.commit_url = 'http://52.56.166.200:12306/social/addtimeline'
+        self.base_url = 'http://lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com:12306/social/accountlist'
+        self.commit_url = 'http://lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com:12306/social/addtimeline'
         self.common_query = 'page_limit=40&need_pagination=1'
         # self.headers = {'Connection': 'close'}
         self.count = 50
