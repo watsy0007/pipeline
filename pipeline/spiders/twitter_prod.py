@@ -95,9 +95,9 @@ class TwitterProdSpider(scrapy.Spider):
                 item['review_status'] = 0
             else:
                 item['review_status'] = 1
-            # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
             r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
-            print('{} => {} {}'.format(self.commit_url, r.status_code, r.json()))
+            self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
+            self.logger.error('{} => {} {}'.format(self.commit_url, r.status_code, r.json()))
             if r.status_code == 200:
                 # todo 判断code是否成功,否则捕获api错误
                 result = r.json()
