@@ -34,14 +34,14 @@ class TwitterDemoSpider(scrapy.Spider):
         data = json.loads(response.body)
 
         yield TwitterUserTimelineRequest(
-            screen_name='EOS_io',
+            screen_name='hitbtc',
             count=self.count,
-            since_id=958972424132816896,
+            since_id=963402035155623936,
             callback=self.parse_twitter_time_line,
             errback=self.parse_twitter_error,
-            meta={'social_id': 26,
-                  'last_content_id': 958972424132816896,
-                  'screen_name': 'EOS_io',
+            meta={'social_id': 205,
+                  'last_content_id': 963402035155623936,
+                  'screen_name': 'hitbtc',
                   'need_review': 0})
 
     def parse_twitter_error(self, failure):
@@ -80,18 +80,18 @@ class TwitterDemoSpider(scrapy.Spider):
             else:
                 item['review_status'] = 1
             self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
-            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
-            if r.status_code == 200:
-                # todo 判断code是否成功,否则捕获api错误
-                result = r.json()
-                self.logger.info('result:{}'.format(result))
-                if int(result['code']) != 0:
-                    api_error({'url': response.request.url,
-                               'response': json.dumps(r.json()),
-                               'vars': json.dumps({k: str(item[k]) for k in item})})
-            else:
-                # todo 捕获异常
-                self.logger.error('{} - {}'.format(r.status_code, r.content))
+            # r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
+            # if r.status_code == 200:
+            #     # todo 判断code是否成功,否则捕获api错误
+            #     result = r.json()
+            #     self.logger.info('result:{}'.format(result))
+            #     if int(result['code']) != 0:
+            #         api_error({'url': response.request.url,
+            #                    'response': json.dumps(r.json()),
+            #                    'vars': json.dumps({k: str(item[k]) for k in item})})
+            # else:
+            #     # todo 捕获异常
+            #     self.logger.error('{} - {}'.format(r.status_code, r.content))
 
     ##############################################################
     # data format
