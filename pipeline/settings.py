@@ -21,6 +21,7 @@ TWITTER_CONSUMER_KEY        = '7ItrbuzK8X943zg1LUS3F3P44'
 TWITTER_CONSUMER_SECRET     = 'xgwCM99SS8mscxoWOYdyFL1E1ao5IkxkjyvvL2Mo68k6nxmXdS'
 TWITTER_ACCESS_TOKEN_KEY    = '907153297143820289-fsGn38Kwrju9LQnhdvURXsFtYi20s32'
 TWITTER_ACCESS_TOKEN_SECRET = '9NE2Db7z0v1q7oKp4l4vcH5XMpgn9o19VW9bXLkVg8ALQ'
+TWITTER_TEXT_MODE           = 'extended'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'pipeline (+http://www.yourdomain.com)'
