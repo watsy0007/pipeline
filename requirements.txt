@@ -4,9 +4,6 @@ arrow
 scrapyd
 scrapyd-client
 git+https://github.com/watsy0007/scrapy-twitter.git#egg=scrapy_twitter
-
-pipe
-
 aniso8601==1.2.0
 APScheduler==3.3.1
 click==6.7
