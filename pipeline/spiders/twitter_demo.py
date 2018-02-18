@@ -39,6 +39,7 @@ class TwitterDemoSpider(scrapy.Spider):
             since_id=963402035155623936,
             callback=self.parse_twitter_time_line,
             errback=self.parse_twitter_error,
+            tweet_mode='extended',
             meta={'social_id': 205,
                   'last_content_id': 963402035155623936,
                   'screen_name': 'hitbtc',
