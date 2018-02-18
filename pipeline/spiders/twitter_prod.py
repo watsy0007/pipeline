@@ -143,7 +143,7 @@ class TwitterProdSpider(scrapy.Spider):
         retweet = item['retweet_content']
         retweet['account'] = status['user']['screen_name']
         retweet['nickname'] = status['user']['name']
-        retweet['content'] = status['text']
+        retweet['content'] = status['full_text']
         retweet['content_translation'] = \
             json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['full_text']),data['urls']) })
         item['is_reweet'] = 1
