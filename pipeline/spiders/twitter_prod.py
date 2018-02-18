@@ -96,8 +96,8 @@ class TwitterProdSpider(scrapy.Spider):
             else:
                 item['review_status'] = 1
             r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
-            self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
-            self.logger.error('{} => {} {}'.format(self.commit_url, r.status_code, r.json()))
+            # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
+            # self.logger.error('{} => {} {}'.format(self.commit_url, r.status_code, r.json()))
             if r.status_code == 200:
                 # todo 判断code是否成功,否则捕获api错误
                 result = r.json()
@@ -118,11 +118,11 @@ class TwitterProdSpider(scrapy.Spider):
         return self.extend_retweet_struct(item, data)
 
     def default_time_line_struct(self, data):
-        translation = self.format_tweet_urls(get_translation(data['text']), data['urls'])
+        translation = self.format_tweet_urls(get_translation(data['full_text']), data['urls'])
         return {
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
-            'content': self.format_tweet_urls(data['text'], data['urls']),
+            'content': self.format_tweet_urls(data['full_text'], data['urls']),
             'content_translation': translation,
             'i18n_content_translation': json.dumps({'zh_cn': translation}),
             'is_reweet': 0,
@@ -145,6 +145,6 @@ class TwitterProdSpider(scrapy.Spider):
         retweet['nickname'] = status['user']['name']
         retweet['content'] = status['text']
         retweet['content_translation'] = \
-            json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['text']),data['urls']) })
+            json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['full_text']),data['urls']) })
         item['is_reweet'] = 1
         return item

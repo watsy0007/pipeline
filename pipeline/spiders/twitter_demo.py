@@ -70,6 +70,7 @@ class TwitterDemoSpider(scrapy.Spider):
         account = response.request.meta['screen_name']
         self.logger.info('twitter: {}, last_id: {}, count: {}'.format(account, last_content_id, len(response.tweets)))
         for tweet in response.tweets:
+            self.logger.info('response data : {}'.format(to_item(tweet)))
             item = self.format_request(to_item(tweet))
             self.logger.info('twitter {}'.format(to_item(tweet)))
             if item['retweet_content'] is not None:
@@ -102,11 +103,11 @@ class TwitterDemoSpider(scrapy.Spider):
         return self.extend_retweet_struct(item, data)
 
     def default_time_line_struct(self, data):
-        transaction = self.format_tweet_urls(get_translation(data['text']), data['urls'])
+        transaction = self.format_tweet_urls(get_translation(data['full_text']), data['urls'])
         return {
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
-            'content': self.format_tweet_urls(data['text'], data['urls']),
+            'content': self.format_tweet_urls(data['full_text'], data['urls']),
             'content_translation': transaction,
             'i18n_content_translation': json.dumps({'zh_cn': transaction}),
             'is_reweet': 0,
@@ -127,8 +128,8 @@ class TwitterDemoSpider(scrapy.Spider):
         retweet = item['retweet_content']
         retweet['account'] = status['user']['screen_name']
         retweet['nickname'] = status['user']['name']
-        retweet['content'] = status['text']
+        retweet['content'] = status['full_text']
         retweet['content_translation'] = \
-            json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['text']),data['urls']) })
+            json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['full_text']),data['urls']) })
         item['is_reweet'] = 1
         return item
