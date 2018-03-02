@@ -50,6 +50,7 @@ class CMCHistoryPricePipeline(object):
 
     def process_item(self, item, spider):
         if type(spider) == CmcHistoryAnchorSpider:
+            print(dict(item))
             r = requests.post(url=get_project_settings().get('CMC_HISTORY_URL'), data=dict(item))
             print('status: {} data {}'.format(r.status_code, item))
         return item
