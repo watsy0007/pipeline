@@ -48,7 +48,7 @@ class TwitterProdSpider(scrapy.Spider):
             self.logger.error('{} error {}'.format(response.request.url, response.body))
             return
         for item in data['data']['list']:
-            if self.debug_screen is not None:
+            if self.debug_screen is not None and self.debug_screen == item['account']:
                 self.logger.info('debug screen {} {}'.format(self.debug_screen, item))
             yield TwitterUserTimelineRequest(
                 screen_name=item['account'],
