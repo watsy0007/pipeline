@@ -29,7 +29,7 @@ class CmcHistoryAnchorSpider(CrawlSpider):
             self.end_date)
         urls = [f_url(symbol) for symbol in ('bitcoin', 'ethereum', 'tether')]
 
-        print(urls)
+        self.logger.info(urls)
         return [Request(url=url, callback=self.parse) for url in urls]
 
     def parse(self, response):

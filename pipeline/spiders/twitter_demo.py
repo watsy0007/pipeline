@@ -20,6 +20,11 @@ class TwitterDemoSpider(scrapy.Spider):
         self.base_url = 'http://52.56.166.200:12306/social/accountlist'
         self.commit_url = 'http://52.56.166.200:12306/social/addtimeline'
         self.common_query = 'page_limit=40&need_pagination=1'
+        self.screen_name = kwargs.get('screen_name')
+        self.since_id = kwargs.get('since_id')
+        if self.since_id is None:
+            self.since_id = 0
+        self.social_id = kwargs.get('social_id')
         # self.headers = {'Connection': 'close'}
         self.count = 50
 
@@ -34,13 +39,13 @@ class TwitterDemoSpider(scrapy.Spider):
         data = json.loads(response.body)
 
         yield TwitterUserTimelineRequest(
-            screen_name='hitbtc',
+            screen_name=self.screen_name,
             count=self.count,
-            since_id=963402035155623936,
+            since_id=self.since_id,
             callback=self.parse_twitter_time_line,
             errback=self.parse_twitter_error,
-            meta={'social_id': 205,
-                  'last_content_id': 963402035155623936,
+            meta={'social_id': self.social_id,
+                  'last_content_id': self.screen_name,
                   'screen_name': 'hitbtc',
                   'need_review': 0})
 
@@ -81,18 +86,6 @@ class TwitterDemoSpider(scrapy.Spider):
             else:
                 item['review_status'] = 1
             self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
-            # r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
-            # if r.status_code == 200:
-            #     # todo 判断code是否成功,否则捕获api错误
-            #     result = r.json()
-            #     self.logger.info('result:{}'.format(result))
-            #     if int(result['code']) != 0:
-            #         api_error({'url': response.request.url,
-            #                    'response': json.dumps(r.json()),
-            #                    'vars': json.dumps({k: str(item[k]) for k in item})})
-            # else:
-            #     # todo 捕获异常
-            #     self.logger.error('{} - {}'.format(r.status_code, r.content))
 
     ##############################################################
     # data format

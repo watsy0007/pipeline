@@ -9,6 +9,7 @@ from scrapy.utils.project import get_project_settings
 from pipeline.spiders.coingeckospider import CoingeckoSpider
 from pipeline.spiders.coinmarketcap import CoinmarketcapSpider
 from pipeline.spiders.coinmarketcap_anchor import CmcHistoryAnchorSpider
+import logging
 
 repr_str = ['\r', '\n', '\t']
 def item_etls(string=None):
@@ -42,7 +43,7 @@ class CmcPipeline(object):
     def process_item(self, item, spider):
         if type(spider) == CoinmarketcapSpider:
             requests.post(url=get_project_settings().get('CMC_URL'), data=dict(item))
-            print("data {}".format(item))
+            logging.log(logging.INFO, "data {}".format(item))
         return item
 
 
@@ -50,7 +51,7 @@ class CMCHistoryPricePipeline(object):
 
     def process_item(self, item, spider):
         if type(spider) == CmcHistoryAnchorSpider:
-            print(dict(item))
+            logging.log(logging.INFO, dict(item))
             r = requests.post(url=get_project_settings().get('CMC_HISTORY_URL'), data=dict(item))
-            print('status: {} data {}'.format(r.status_code, item))
+            logging.log(logging.INFO, 'status: {} data {}'.format(r.status_code, item))
         return item
