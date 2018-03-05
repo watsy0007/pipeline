@@ -19,8 +19,9 @@ class TwitterProdSpider(scrapy.Spider):
         super(TwitterProdSpider, self).__init__(*args, **kwargs)
         self.base_url = 'http://lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com:12306/social/accountlist'
         self.commit_url = 'http://lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com:12306/social/addtimeline'
-        self.common_query = 'page_limit=40&need_pagination=1'
+        self.common_query = 'page_limit=50&need_pagination=1'
         # self.headers = {'Connection': 'close'}
+        self.debug_screen = kwargs.get('debug_screen')
         self.count = 50
 
     def start_requests(self):
@@ -34,6 +35,7 @@ class TwitterProdSpider(scrapy.Spider):
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
         page = int(query['page_num'])
         url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
+        self.logger.info(url)
         return Request(url, callback=self.parse, errback=self.parse_error)
 
     def parse_error(self, response):
@@ -46,6 +48,8 @@ class TwitterProdSpider(scrapy.Spider):
             self.logger.error('{} error {}'.format(response.request.url, response.body))
             return
         for item in data['data']['list']:
+            if self.debug_screen is not None:
+                self.logger.info('debug screen {} {}'.format(self.debug_screen, item))
             yield TwitterUserTimelineRequest(
                 screen_name=item['account'],
                 count=self.count,
