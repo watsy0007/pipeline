@@ -17,11 +17,16 @@ class TwitterProdSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(TwitterProdSpider, self).__init__(*args, **kwargs)
-        self.base_url = 'http://lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com:12306/social/accountlist'
-        self.commit_url = 'http://lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com:12306/social/addtimeline'
+        self.host = kwargs.get('host')
+        if self.host is None:
+            self.host = 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com'
+        self.base_url = 'http://{}:12306/social/accountlist'.format(self.host)
+        self.commit_url = 'http://{}:12306/social/addtimeline'.format(self.host)
+
         self.common_query = 'page_limit=50&need_pagination=1'
         # self.headers = {'Connection': 'close'}
         self.debug_screen = kwargs.get('debug_screen')
+        self.debug_mode = kwargs.get('debug_mode')
         self.count = 50
 
     def start_requests(self):
@@ -35,7 +40,6 @@ class TwitterProdSpider(scrapy.Spider):
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
         page = int(query['page_num'])
         url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
-        self.logger.info(url)
         return Request(url, callback=self.parse, errback=self.parse_error)
 
     def parse_error(self, response):
@@ -48,18 +52,30 @@ class TwitterProdSpider(scrapy.Spider):
             self.logger.error('{} error {}'.format(response.request.url, response.body))
             return
         for item in data['data']['list']:
-            if self.debug_screen is not None and self.debug_screen == item['account']:
+            if self.debug_screen is not None:
+                if self.debug_screen != item['account']:
+                    continue
                 self.logger.info('debug screen {} {}'.format(self.debug_screen, item))
-            yield TwitterUserTimelineRequest(
-                screen_name=item['account'],
-                count=self.count,
-                since_id=item['last_social_content_id'],
-                callback=self.parse_twitter_time_line,
-                errback=self.parse_twitter_error,
-                meta={'social_id': item['id'],
+
+            meta_params = {'social_id': item['id'],
                       'last_content_id': item['last_social_content_id'],
                       'screen_name': item['account'],
-                      'need_review': item['need_review']})
+                      'need_review': item['need_review']}
+            if str(item['last_social_content_id']) == '0':
+                yield TwitterUserTimelineRequest(
+                    screen_name=item['account'],
+                    count=self.count,
+                    callback=self.parse_twitter_time_line,
+                    errback=self.parse_twitter_error,
+                    meta=meta_params)
+            else:
+                yield TwitterUserTimelineRequest(
+                    screen_name=item['account'],
+                    count=self.count,
+                    since_id=item['last_social_content_id'],
+                    callback=self.parse_twitter_time_line,
+                    errback=self.parse_twitter_error,
+                    meta=meta_params)
 
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:
@@ -67,7 +83,7 @@ class TwitterProdSpider(scrapy.Spider):
 
     def parse_twitter_error(self, failure):
         # log all failures
-        self.logger.error('parse twitter error {}'.format(repr(failure)))
+        self.logger.error('parse twitter error {}, meta {}'.format(repr(failure), failure.request.meta))
 
         if failure.check(HttpError):
             # these exceptions come from HttpError spider middleware
@@ -122,7 +138,11 @@ class TwitterProdSpider(scrapy.Spider):
         return self.extend_retweet_struct(item, data)
 
     def default_time_line_struct(self, data):
-        translation = self.format_tweet_urls(get_translation(data['full_text']), data['urls'])
+        translation = None
+        if self.debug_mode is None:
+            translation = self.format_tweet_urls(get_translation(data['full_text']), data['urls'])
+        else:
+            translation = self.format_tweet_urls(data['full_text'], data['urls'])
         return {
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
@@ -148,7 +168,10 @@ class TwitterProdSpider(scrapy.Spider):
         retweet['account'] = status['user']['screen_name']
         retweet['nickname'] = status['user']['name']
         retweet['content'] = self.format_tweet_urls(status['full_text'], data['urls'])
-        retweet['content_translation'] = \
-            json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['full_text']),data['urls']) })
+        if self.debug_mode is None:
+            retweet['content_translation'] = json.dumps(
+                {
+                    'zh_cn': self.format_tweet_urls(get_translation(status['full_text']),data['urls'])
+                })
         item['is_reweet'] = 1
         return item
