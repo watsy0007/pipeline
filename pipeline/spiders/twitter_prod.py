@@ -10,6 +10,7 @@ from scrapy_twitter import TwitterUserTimelineRequest, to_item
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
+from time import sleep
 
 class TwitterProdSpider(scrapy.Spider):
     name = 'twitter_prod'
@@ -76,6 +77,9 @@ class TwitterProdSpider(scrapy.Spider):
                     callback=self.parse_twitter_time_line,
                     errback=self.parse_twitter_error,
                     meta=meta_params)
+
+            if self.debug_mode is None:
+                sleep(2)
 
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:
