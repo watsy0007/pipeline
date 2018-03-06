@@ -14,7 +14,7 @@ from time import sleep
 
 class TwitterProdSpider(scrapy.Spider):
     name = 'twitter_prod'
-    allowed_domains = ["twitter.com", '127.0.0.1', 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com']
+    allowed_domains = ["twitter.com", '35.176.110.161', 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com']
 
     def __init__(self, *args, **kwargs):
         super(TwitterProdSpider, self).__init__(*args, **kwargs)
@@ -36,14 +36,17 @@ class TwitterProdSpider(scrapy.Spider):
 
     def yield_next_page_request(self, response, data):
         if len(data['data']['list']) == 0:
+            self.logger.info('url {} response {}'.format(response.request.url,  data['data']))
             return None
 
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
         page = int(query['page_num'])
         url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
+        self.logger.info(url)
         return Request(url, callback=self.parse, errback=self.parse_error)
 
     def parse_error(self, response):
+        self.logger.error('error url {}, error{}'.format(response.request.url, repr(response)))
         api_error({'url': response.request.url})
 
     def parse(self, response):
@@ -58,48 +61,33 @@ class TwitterProdSpider(scrapy.Spider):
                     continue
                 self.logger.info('debug screen {} {}'.format(self.debug_screen, item))
 
-            meta_params = {'social_id': item['id'],
-                      'last_content_id': item['last_social_content_id'],
-                      'screen_name': item['account'],
-                      'need_review': item['need_review']}
+            kwargs = {
+                'screen_name': item['account'],
+                'count': self.count,
+                'callback': self.parse_twitter_time_line,
+                'errback': self.parse_twitter_error,
+                'meta':  {
+                    'social_id': item['id'],
+                    'last_content_id': item['last_social_content_id'],
+                    'screen_name': item['account'],
+                    'need_review': item['need_review']
+                }
+            }
             if str(item['last_social_content_id']) == '0':
-                yield TwitterUserTimelineRequest(
-                    screen_name=item['account'],
-                    count=self.count,
-                    callback=self.parse_twitter_time_line,
-                    errback=self.parse_twitter_error,
-                    meta=meta_params)
-            else:
-                yield TwitterUserTimelineRequest(
-                    screen_name=item['account'],
-                    count=self.count,
-                    since_id=item['last_social_content_id'],
-                    callback=self.parse_twitter_time_line,
-                    errback=self.parse_twitter_error,
-                    meta=meta_params)
-
-            if self.debug_mode is None:
-                sleep(2)
-
+                kwargs['since_id'] = item['last_social_content_id']
+            yield TwitterUserTimelineRequest(**kwargs)
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:
             yield next_page_generator
 
     def parse_twitter_error(self, failure):
-        # log all failures
         self.logger.error('parse twitter error {}, meta {}'.format(repr(failure), failure.request.meta))
-
         if failure.check(HttpError):
-            # these exceptions come from HttpError spider middleware
-            # you can get the non-200 response
             response = failure.value.response
             self.logger.error('HttpError on %s', response.url)
-
         elif failure.check(DNSLookupError):
-            # this is the original request
             request = failure.request
             self.logger.error('DNSLookupError on %s', request.url)
-
         elif failure.check(TimeoutError, TCPTimedOutError):
             request = failure.request
             self.logger.error('TimeoutError on %s', request.url)
@@ -119,7 +107,7 @@ class TwitterProdSpider(scrapy.Spider):
                 item['review_status'] = 0
             else:
                 item['review_status'] = 1
-            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=5)
+            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=6)
             # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
             # self.logger.error('{} => {} {}'.format(self.commit_url, r.status_code, r.json()))
             if r.status_code == 200:
@@ -145,8 +133,6 @@ class TwitterProdSpider(scrapy.Spider):
         translation = None
         if self.debug_mode is None:
             translation = self.format_tweet_urls(get_translation(data['full_text']), data['urls'])
-        else:
-            translation = self.format_tweet_urls(data['full_text'], data['urls'])
         return {
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
