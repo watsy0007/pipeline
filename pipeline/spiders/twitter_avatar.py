@@ -60,12 +60,13 @@ class TwitterSpider(scrapy.Spider):
                     continue
                 self.logger.info('debug screen {} {}'.format(self.debug_screen, item))
 
-            # yield TwitterUserShowRequest(
-            #     screen_name=item['account'],
-            #     callback=self.parse_twitter_user_show,
-            #     errback=self.parse_twitter_error,
-            #     meta={'social_id': item['id'],
-            #           'screen_name': item['account']})
+            yield TwitterUserShowRequest(
+                screen_name=item['account'],
+                callback=self.parse_twitter_user_show,
+                errback=self.parse_twitter_error,
+                meta={'social_id': item['id'],
+                      'proxy': 'http://127.0.0.1:1087',
+                      'screen_name': item['account']})
 
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:

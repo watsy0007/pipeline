@@ -1,5 +1,5 @@
 from scrapy import cmdline
 
-name = 'cmc_history_anchor'
-cmd = 'scrapy crawl {0}'.format(name)
+
+cmd = 'scrapy crawl twitter_avatar -a debug_screen=mytokenio'
 cmdline.execute(cmd.split())
