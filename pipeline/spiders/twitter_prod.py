@@ -73,7 +73,7 @@ class TwitterProdSpider(scrapy.Spider):
                     'need_review': item['need_review']
                 }
             }
-            if str(item['last_social_content_id']) == '0':
+            if str(item['last_social_content_id']) != '0':
                 kwargs['since_id'] = item['last_social_content_id']
             yield TwitterUserTimelineRequest(**kwargs)
         next_page_generator = self.yield_next_page_request(response, data)
@@ -107,13 +107,14 @@ class TwitterProdSpider(scrapy.Spider):
                 item['review_status'] = 0
             else:
                 item['review_status'] = 1
-            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=6)
+            r = requests.post(url=self.commit_url, data={k: str(item[k]) for k in item}, timeout=8)
             # self.logger.info('post to prod %s', json.dumps({k: str(item[k]) for k in item}))
             # self.logger.error('{} => {} {}'.format(self.commit_url, r.status_code, r.json()))
             if r.status_code == 200:
                 # todo 判断code是否成功,否则捕获api错误
                 result = r.json()
                 if int(result['code']) != 0:
+                    self.logger.error('{} - {}'.format(response.request.url, r.json()))
                     api_error({'url': response.request.url,
                                'response': json.dumps(r.json()),
                                'vars': json.dumps({k: str(item[k]) for k in item})})
