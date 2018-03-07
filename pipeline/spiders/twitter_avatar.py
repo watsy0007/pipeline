@@ -55,12 +55,17 @@ class TwitterSpider(scrapy.Spider):
             self.logger.error('{} error {}'.format(response.request.url, response.body))
             return
         for item in data['data']['list']:
-            yield TwitterUserShowRequest(
-                screen_name=item['account'],
-                callback=self.parse_twitter_user_show,
-                errback=self.parse_twitter_error,
-                meta={'social_id': item['id'],
-                      'screen_name': item['account']})
+            if self.debug_screen is not None:
+                if self.debug_screen != item['account']:
+                    continue
+                self.logger.info('debug screen {} {}'.format(self.debug_screen, item))
+
+            # yield TwitterUserShowRequest(
+            #     screen_name=item['account'],
+            #     callback=self.parse_twitter_user_show,
+            #     errback=self.parse_twitter_error,
+            #     meta={'social_id': item['id'],
+            #           'screen_name': item['account']})
 
         next_page_generator = self.yield_next_page_request(response, data)
         if next_page_generator is not None:
