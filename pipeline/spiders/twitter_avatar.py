@@ -6,22 +6,25 @@ import json
 from urllib import parse
 from pipeline.utils import spider_error, api_error, translate_request
 import requests
+from pipeline.utils import upload_assets
 from scrapy_twitter import TwitterUserShowRequest, to_item
+from pipeline.items import TwitterAvatarItem
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 
-class TwitterSpider(scrapy.Spider):
+class TwitterAvatarSpider(scrapy.Spider):
     name = 'twitter_avatar'
     allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161', 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com']
 
     def __init__(self, *args, **kwargs):
-        super(TwitterSpider, self).__init__(*args, **kwargs)
+        super(TwitterAvatarSpider, self).__init__(*args, **kwargs)
         self.host = kwargs.get('host')
         if self.host is None:
             self.host = 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com'
         self.base_url = 'http://{}:12306/social/accountlist'.format(self.host)
         self.commit_url = 'http://{}:12306/social/addtimeline'.format(self.host)
+        self.update_url = 'http://{}:12306/social/updateaccount'.format(self.host)
 
         self.common_query = 'page_limit=50&need_pagination=1'
         # self.headers = {'Connection': 'close'}
@@ -35,7 +38,6 @@ class TwitterSpider(scrapy.Spider):
 
     def yield_next_page_request(self, response, data):
         if len(data['data']['list']) == 0:
-            self.logger.info('url {} response {}'.format(response.request.url,  data['data']))
             return None
 
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
@@ -45,13 +47,13 @@ class TwitterSpider(scrapy.Spider):
         return Request(url, callback=self.parse, errback=self.parse_error)
 
     def parse_error(self, response):
-        self.logger.error('error url {}, error{}'.format(response.request.url, repr(response)))
+        # self.logger.error('error url {}, error{}'.format(response.request.url, repr(response)))
         api_error({'url': response.request.url})
 
     def parse(self, response):
         data = json.loads(response.body)
         if data['code'] != 0:
-            api_error({'url': response.request.url, 'response': response.body})
+            # api_error({'url': response.request.url, 'response': response.body})
             self.logger.error('{} error {}'.format(response.request.url, response.body))
             return
         for item in data['data']['list']:
@@ -65,7 +67,7 @@ class TwitterSpider(scrapy.Spider):
                 callback=self.parse_twitter_user_show,
                 errback=self.parse_twitter_error,
                 meta={'social_id': item['id'],
-                      'proxy': 'http://127.0.0.1:1087',
+                      'source_avatar': item['source_avatar'],
                       'screen_name': item['account']})
 
         next_page_generator = self.yield_next_page_request(response, data)
@@ -86,8 +88,16 @@ class TwitterSpider(scrapy.Spider):
 
     def parse_twitter_user_show(self, response):
         account_id = response.request.meta['social_id']
-        account = response.request.meta['screen_name']
-        self.logger.info('twitter: {}, body: {}'.format(account, response.body))
+        source_avatar = response.request.meta['source_avatar']
+        image_url = response.user['profile_image_url']
+        if image_url is not None:
+            image_url = image_url.replace('_normal', '')
+        if source_avatar != image_url:
+            item = TwitterAvatarItem()
+            item['social_account_id'] = account_id
+            item['source_avatar'] = image_url
+            item['avatar'] = upload_assets(image_url)
+            yield item
 
     ##############################################################
     # data format

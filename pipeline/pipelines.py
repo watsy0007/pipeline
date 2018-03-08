@@ -9,6 +9,8 @@ from scrapy.utils.project import get_project_settings
 from pipeline.spiders.coingeckospider import CoingeckoSpider
 from pipeline.spiders.coinmarketcap import CoinmarketcapSpider
 from pipeline.spiders.coinmarketcap_anchor import CmcHistoryAnchorSpider
+from pipeline.spiders.twitter_avatar import TwitterAvatarSpider
+from pipeline.items import TwitterAvatarItem
 import logging
 
 repr_str = ['\r', '\n', '\t']
@@ -53,5 +55,15 @@ class CMCHistoryPricePipeline(object):
         if type(spider) == CmcHistoryAnchorSpider:
             logging.log(logging.INFO, dict(item))
             r = requests.post(url=get_project_settings().get('CMC_HISTORY_URL'), data=dict(item))
+            logging.log(logging.INFO, 'status: {} data {}'.format(r.status_code, item))
+        return item
+
+
+class TwitterAvatarPipeline(object):
+
+    def process_item(self, item, spider):
+        if type(item) == TwitterAvatarItem:
+            logging.log(logging.INFO, dict(item))
+            r = requests.post(url=item.update_url, data=dict(item))
             logging.log(logging.INFO, 'status: {} data {}'.format(r.status_code, item))
         return item

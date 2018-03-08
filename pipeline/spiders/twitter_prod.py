@@ -36,7 +36,6 @@ class TwitterProdSpider(scrapy.Spider):
 
     def yield_next_page_request(self, response, data):
         if len(data['data']['list']) == 0:
-            self.logger.info('url {} response {}'.format(response.request.url,  data['data']))
             return None
 
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))

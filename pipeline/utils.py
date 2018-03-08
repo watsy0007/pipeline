@@ -72,6 +72,15 @@ def get_translation(text):
 
 
 @parse_error_decorator
+def upload_assets(url):
+    url = 'https://api.mytokenio.com/common/uploadimage?resourceUrls={remote}&debug=ico'.format(remote=url)
+    r = requests.get(url)
+    if r.status_code == 200:
+        return r.json()['data']['urls'][0]
+    else:
+        return url
+
+@parse_error_decorator
 def translate_request(text, target_lang='zh-CHS'):
     app_key = '5479f92f6b8976fd'
     app_secret = 'TK4X01ekWwWLZaUhOl0mbhKHT6EMDPqJ'

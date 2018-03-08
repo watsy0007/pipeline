@@ -29,6 +29,12 @@ class CMCHistoryPriceItem(Item):
     anchor = Field()
 
 
+class TwitterAvatarItem(Item):
+    social_account_id = Field()
+    source_avatar = Field()
+    avatar = Field()
+    nickname = Field()
+
 class IcoItem(Item):
     name = Field()
     symbol = Field()
