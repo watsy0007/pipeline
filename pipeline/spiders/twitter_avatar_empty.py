@@ -61,7 +61,8 @@ class TwitterAvatarEmptySpider(scrapy.Spider):
                 if self.debug_screen != item['account']:
                     continue
                 self.logger.info('debug screen {} {}'.format(self.debug_screen, item))
-
+            if item['source_avatar'] is not None:
+                continue
             yield TwitterUserShowRequest(
                 screen_name=item['account'],
                 callback=self.parse_twitter_user_show,
@@ -88,16 +89,15 @@ class TwitterAvatarEmptySpider(scrapy.Spider):
 
     def parse_twitter_user_show(self, response):
         account_id = response.request.meta['social_id']
-        source_avatar = response.request.meta['source_avatar']
         image_url = response.user['profile_image_url']
         if image_url is not None:
             image_url = image_url.replace('_normal', '')
-        if source_avatar is None:
-            item = TwitterAvatarItem()
-            item['social_account_id'] = account_id
-            item['source_avatar'] = image_url
-            item['avatar'] = upload_assets(image_url)
-            yield item
+
+        item = TwitterAvatarItem()
+        item['social_account_id'] = account_id
+        item['source_avatar'] = image_url
+        item['avatar'] = upload_assets(image_url)
+        yield item
 
     ##############################################################
     # data format
