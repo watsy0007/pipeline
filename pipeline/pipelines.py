@@ -64,6 +64,6 @@ class TwitterAvatarPipeline(object):
     def process_item(self, item, spider):
         if type(item) == TwitterAvatarItem:
             logging.log(logging.INFO, dict(item))
-            r = requests.post(url=item.update_url, data=dict(item))
+            r = requests.post(url=spider.update_url, data=dict(item))
             logging.log(logging.INFO, 'status: {} data {}'.format(r.status_code, item))
         return item
