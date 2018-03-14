@@ -68,10 +68,10 @@ class TwitterAvatarSpider(scrapy.Spider):
                 errback=self.parse_twitter_error,
                 meta={'social_id': item['id'],
                       'source_avatar': item['source_avatar'],
-                      'screen_name': item['account']})
+                      'nickname': item['nickname']})
 
         next_page_generator = self.yield_next_page_request(response, data)
-        if next_page_generator is not None:
+        if next_page_generator is None:
             yield next_page_generator
 
     def parse_twitter_error(self, failure):
@@ -89,15 +89,23 @@ class TwitterAvatarSpider(scrapy.Spider):
     def parse_twitter_user_show(self, response):
         account_id = response.request.meta['social_id']
         source_avatar = response.request.meta['source_avatar']
+        nickname_old = response.request.meta['nickname']
+
+        nickname = response.user['name']
         image_url = response.user['profile_image_url']
-        if image_url is not None:
-            image_url = image_url.replace('_normal', '')
+        image_url = image_url if image_url is None else image_url.replace('_normal', '')
+
+        if source_avatar == image_url and nickname == nickname_old:
+            return
+
+        item = TwitterAvatarItem()
+        item['social_account_id'] = account_id
         if source_avatar != image_url:
-            item = TwitterAvatarItem()
-            item['social_account_id'] = account_id
             item['source_avatar'] = image_url
             item['avatar'] = upload_assets(image_url)
-            yield item
+        if nickname != nickname_old:
+            item['nickname'] = nickname
+        yield item
 
     ##############################################################
     # data format
