@@ -10,6 +10,7 @@ from scrapy_twitter import TwitterUserTimelineRequest, to_item
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
+import re
 
 class TwitterDemoSpider(scrapy.Spider):
     name = 'twitter_demo'
@@ -96,16 +97,32 @@ class TwitterDemoSpider(scrapy.Spider):
         return self.extend_retweet_struct(item, data)
 
     def default_time_line_struct(self, data):
-        transaction = self.format_tweet_urls(get_translation(data['full_text']), data['urls'])
+        content, urls = self.get_content(data)
+        transaction = self.format_tweet_urls(get_translation(content), urls)
         return {
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
-            'content': self.format_tweet_urls(data['full_text'], data['urls']),
+            'content': content,
             'content_translation': transaction,
             'i18n_content_translation': json.dumps({'zh_cn': transaction}),
             'is_reweet': 0,
             'retweet_content': {}
         }
+
+    def get_content(self, data):
+        if 'retweeted_status' not in data.keys():
+            content = data['full_text']
+            urls = data['urls']
+        else:
+            status = data['retweeted_status']
+            tweet_prefix = ''
+            try:
+                tweet_prefix = re.search('RT @\w+:', data['full_text']).group(0)
+            except Exception as e:
+                self.logger.error('cant find prefix: {}'.format(e))
+            content = '{}{}'.format(tweet_prefix, status['full_text'])
+            urls = status['urls']
+        return self.format_tweet_urls(content, urls), urls
 
     @classmethod
     def format_tweet_urls(cls, content, urls):
