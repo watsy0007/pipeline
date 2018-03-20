@@ -8,6 +8,7 @@ scrapyd-client
 git+https://github.com/watsy0007/scrapy-twitter.git#egg=scrapy_twitter
 aniso8601==1.2.0
 APScheduler==3.3.1
+beautifulsoup4==4.6.0
 click==6.7
 Flask==0.12.1
 Flask-BasicAuth==0.2.0
