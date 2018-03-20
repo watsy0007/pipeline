@@ -77,8 +77,7 @@ def upload_assets(url):
     r = requests.get(url)
     if r.status_code == 200:
         return r.json()['data']['urls'][0]
-    else:
-        return url
+    return url
 
 @parse_error_decorator
 def translate_request(text, target_lang='zh-CHS'):
