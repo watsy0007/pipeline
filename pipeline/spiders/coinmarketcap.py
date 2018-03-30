@@ -3,6 +3,7 @@ import scrapy
 import json
 from pipeline.items import CMCItem
 
+
 class CoinmarketcapSpider(scrapy.Spider):
     name = 'cmc_detail'
     allowed_domains = ["coinmarketcap.com"]
@@ -25,4 +26,3 @@ class CoinmarketcapSpider(scrapy.Spider):
             else:
                 item['max_supply'] = 0
             yield item
-

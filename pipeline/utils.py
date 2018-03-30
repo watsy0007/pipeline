@@ -8,6 +8,7 @@ from scrapy.utils.project import get_project_settings
 from google.cloud import translate
 import os
 
+
 # error_handler
 # args:
 #   type: EXCHANGE_ERROR, EXCHANGE_QUEUE_ERROR, API_ERROR, PARSE_ERROR
@@ -56,6 +57,7 @@ def parse_error_decorator(func):
                  }
             )
             raise
+
     return wrapper
 
 
@@ -65,20 +67,25 @@ def get_google_trans_path():
 
 
 @parse_error_decorator
-def get_translation(text):
+def get_translation(text, urls):
+    if urls:
+        for url in urls:
+            text = text.replace(url['url'], '')
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = get_google_trans_path()
     trans_client = translate.Client(target_language='zh-CN')
-    return trans_client.translate(text)['translatedText']
+    translated = trans_client.translate(text)['translatedText']
+    return translated
 
 
 @parse_error_decorator
 def upload_assets(url):
     url = 'https://api.mytokenio.com/common/uploadimage?resourceUrls={remote}&debug=ico'.format(remote=url)
     r = requests.get(url)
-    if r.status_code == 200:
+    if r.status_code == 200 and int(r.json()['code']) == 0:
         return r.json()['data']['urls'][0]
     else:
         return url
+
 
 @parse_error_decorator
 def translate_request(text, target_lang='zh-CHS'):
@@ -113,4 +120,5 @@ def translate_request(text, target_lang='zh-CHS'):
 
 
 if __name__ == '__main__':
-    print(get_translation("Meet us tomorrow at @chatbotsummit TLV, where we'll talk about how Bancor uses #chatbots to let anyone set up a\u2026 <a href=\"https://twitter.com/i/web/status/958365458687807488\" target=\"_blank\">https://t.co/4jLMgYq9z9</a>"))
+    print(get_translation(
+        "Meet us tomorrow at @chatbotsummit TLV, where we'll talk about how Bancor uses #chatbots to let anyone set up a\u2026 <a href=\"https://twitter.com/i/web/status/958365458687807488\" target=\"_blank\">https://t.co/4jLMgYq9z9</a>"))

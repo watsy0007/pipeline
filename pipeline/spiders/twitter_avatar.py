@@ -13,9 +13,11 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 
+
 class TwitterAvatarSpider(scrapy.Spider):
     name = 'twitter_avatar'
-    allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161', 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com']
+    allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161',
+                       'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com']
 
     def __init__(self, *args, **kwargs):
         super(TwitterAvatarSpider, self).__init__(*args, **kwargs)
@@ -33,7 +35,7 @@ class TwitterAvatarSpider(scrapy.Spider):
         self.count = 50
 
     def start_requests(self):
-        url = '{url}?page_num=1&{query}'.format(url=self.base_url,query=self.common_query)
+        url = '{url}?page_num=1&{query}'.format(url=self.base_url, query=self.common_query)
         return [Request(url, callback=self.parse, errback=self.parse_error)]
 
     def yield_next_page_request(self, response, data):
@@ -42,7 +44,7 @@ class TwitterAvatarSpider(scrapy.Spider):
 
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
         page = int(query['page_num'])
-        url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
+        url = '{url}?page_num={page}&{query}'.format(url=self.base_url, page=page + 1, query=self.common_query)
         self.logger.info(url)
         return Request(url, callback=self.parse, errback=self.parse_error)
 
@@ -71,7 +73,7 @@ class TwitterAvatarSpider(scrapy.Spider):
                       'nickname': item['nickname']})
 
         next_page_generator = self.yield_next_page_request(response, data)
-        if next_page_generator is None:
+        if next_page_generator is not None:
             yield next_page_generator
 
     def parse_twitter_error(self, failure):

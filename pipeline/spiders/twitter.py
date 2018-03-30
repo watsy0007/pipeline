@@ -11,6 +11,7 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 
+
 class TwitterSpider(scrapy.Spider):
     name = 'twitter'
     allowed_domains = ["twitter.com", '127.0.0.1', '35.176.110.161']
@@ -24,7 +25,7 @@ class TwitterSpider(scrapy.Spider):
         self.count = 50
 
     def start_requests(self):
-        url = '{url}?page_num=1&{query}'.format(url=self.base_url,query=self.common_query)
+        url = '{url}?page_num=1&{query}'.format(url=self.base_url, query=self.common_query)
         return [Request(url, callback=self.parse, errback=self.parse_error)]
 
     def yield_next_page_request(self, response, data):
@@ -33,7 +34,7 @@ class TwitterSpider(scrapy.Spider):
 
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
         page = int(query['page_num'])
-        url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
+        url = '{url}?page_num={page}&{query}'.format(url=self.base_url, page=page + 1, query=self.common_query)
         return Request(url, callback=self.parse, errback=self.parse_error)
 
     def parse_error(self, response):
@@ -138,6 +139,6 @@ class TwitterSpider(scrapy.Spider):
         retweet['nickname'] = status['user']['name']
         retweet['content'] = status['text']
         retweet['content_translation'] = \
-            json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['text']),data['urls']) })
+            json.dumps({'zh_cn': self.format_tweet_urls(get_translation(status['text']), data['urls'])})
         item['is_reweet'] = 1
         return item

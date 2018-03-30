@@ -14,6 +14,8 @@ from pipeline.items import TwitterAvatarItem
 import logging
 
 repr_str = ['\r', '\n', '\t']
+
+
 def item_etls(string=None):
     if not string:
         return string

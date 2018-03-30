@@ -8,6 +8,7 @@ from scrapy import Selector
 from pipeline.items import CMCHistoryPriceItem
 from datetime import datetime, timedelta
 
+
 class CmcHistoryAnchorSpider(CrawlSpider):
     name = 'cmc_history_anchor'
     allowed_domains = ["coinmarketcap.com"]
@@ -44,5 +45,3 @@ class CmcHistoryAnchorSpider(CrawlSpider):
             history['symbol'] = symbol
             history['anchor'] = 'usd'
             yield history
-
-

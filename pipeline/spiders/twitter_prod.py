@@ -13,6 +13,7 @@ from twisted.internet.error import TimeoutError, TCPTimedOutError
 from time import sleep
 import re
 
+
 class TwitterProdSpider(scrapy.Spider):
     name = 'twitter_prod'
     allowed_domains = ["twitter.com", '35.176.110.161', 'lb-internalapi-1863620718.eu-west-2.elb.amazonaws.com']
@@ -32,7 +33,7 @@ class TwitterProdSpider(scrapy.Spider):
         self.count = 50
 
     def start_requests(self):
-        url = '{url}?page_num=1&{query}'.format(url=self.base_url,query=self.common_query)
+        url = '{url}?page_num=1&{query}'.format(url=self.base_url, query=self.common_query)
         return [Request(url, callback=self.parse, errback=self.parse_error)]
 
     def yield_next_page_request(self, response, data):
@@ -41,7 +42,7 @@ class TwitterProdSpider(scrapy.Spider):
 
         query = dict(map(lambda x: x.split('='), parse.urlparse(response.request.url)[4].split('&')))
         page = int(query['page_num'])
-        url = '{url}?page_num={page}&{query}'.format(url=self.base_url,page=page + 1,query=self.common_query)
+        url = '{url}?page_num={page}&{query}'.format(url=self.base_url, page=page + 1, query=self.common_query)
         self.logger.info(url)
         return Request(url, callback=self.parse, errback=self.parse_error)
 
@@ -66,7 +67,7 @@ class TwitterProdSpider(scrapy.Spider):
                 'count': self.count,
                 'callback': self.parse_twitter_time_line,
                 'errback': self.parse_twitter_error,
-                'meta':  {
+                'meta': {
                     'social_id': item['id'],
                     'last_content_id': item['last_social_content_id'],
                     'screen_name': item['account'],
@@ -134,7 +135,7 @@ class TwitterProdSpider(scrapy.Spider):
         content, urls = self.get_content(data)
         translation = None
         if self.debug_mode is None:
-            translation = self.format_tweet_urls(get_translation(content), urls)
+            translation = self.format_tweet_urls(get_translation(content, urls), urls)
         return {
             'social_content_id': data['id'],
             'posted_at': arrow.get(data['created_at'], 'ddd MMM DD HH:mm:ss ZZ YYYY').timestamp,
@@ -160,7 +161,6 @@ class TwitterProdSpider(scrapy.Spider):
             urls = status['urls']
         return self.format_tweet_urls(content, urls), urls
 
-
     @classmethod
     def format_tweet_urls(cls, content, urls):
         f_url = lambda x: '<a href="{}" target="_blank">{}</a>'.format(x['expanded_url'], x['url'])
@@ -179,7 +179,7 @@ class TwitterProdSpider(scrapy.Spider):
         if self.debug_mode is None:
             retweet['content_translation'] = json.dumps(
                 {
-                    'zh_cn': self.format_tweet_urls(get_translation(status['full_text']),data['urls'])
+                    'zh_cn': self.format_tweet_urls(get_translation(status['full_text'], status['urls']), data['urls'])
                 })
         item['is_reweet'] = 1
         return item
