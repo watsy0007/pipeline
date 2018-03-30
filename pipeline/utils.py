@@ -83,8 +83,7 @@ def upload_assets(url):
     r = requests.get(url)
     if r.status_code == 200 and int(r.json()['code']) == 0:
         return r.json()['data']['urls'][0]
-    else:
-        return url
+    return url
 
 
 @parse_error_decorator
