@@ -78,12 +78,12 @@ def get_translation(text, urls):
 
 
 @parse_error_decorator
-def upload_assets(url):
-    url = 'https://api.mytokenio.com/common/uploadimage?resourceUrls={remote}&debug=ico'.format(remote=url)
+def upload_assets(url_old):
+    url = 'https://api.mytokenio.com/common/uploadimage?resourceUrls={remote}&debug=ico'.format(remote=url_old)
     r = requests.get(url)
     if r.status_code == 200 and int(r.json()['code']) == 0:
         return r.json()['data']['urls'][0]
-    return url
+    return url_old
 
 
 @parse_error_decorator
